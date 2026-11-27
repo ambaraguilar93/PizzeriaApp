@@ -134,39 +134,6 @@ class PizzeriaViewModel : ViewModel() {
         procesar(resultado) { "Pedido N° ${it.id} pasó a '${it.estado.etiqueta}'." }
     }
 
-    // ---------- TEMPORAL: botones de prueba de la semana 5 ----------
-    // Se eliminan en el Paso 3, cuando PantallaResumen use los formularios reales.
-
-    fun agregarCliente() {
-        val numero = repositorio.totalClientes() + 1
-        val nombre = NOMBRES_DE_PRUEBA[numero % NOMBRES_DE_PRUEBA.size]
-        val resultado = ejecutarSeguro {
-            repositorio.registrarCliente(
-                nombre = nombre,
-                direccion = "Calle Ejemplo $numero",
-                telefono = "+56 (911) 222-3333",
-                correo = "cliente$numero@correo.cl"
-            )
-        }
-        procesar(resultado) { cliente -> "Cliente ${cliente.nombre} registrado." }
-    }
-
-    fun agregarPedido() {
-        val resultado = ejecutarSeguro {
-            val cliente = checkNotNull(repositorio.ultimoCliente()) { "No hay clientes registrados." }
-            repositorio.crearPedido(cliente, repositorio.catalogo.shuffled().take(2))
-        }
-        procesar(resultado) { pedido -> "Pedido N° ${pedido.id} creado para ${pedido.cliente.nombre}." }
-    }
-
-    fun probarPedidoVacio() {
-        val resultado = ejecutarSeguro {
-            val cliente = checkNotNull(repositorio.ultimoCliente()) { "No hay clientes registrados." }
-            repositorio.crearPedido(cliente, emptyList())
-        }
-        procesar(resultado) { pedido -> "Pedido N° ${pedido.id} creado." }
-    }
-
     // ---------- Apoyo ----------
 
     // Convierte el Resultado en un mensaje para la pantalla.
@@ -197,8 +164,5 @@ class PizzeriaViewModel : ViewModel() {
     companion object {
         private const val TIEMPO_CARGA = 700L          // milisegundos que se ve el indicador al navegar
         private val CANTIDAD_PERMITIDA = 1..100         // misma regla que en la versión de consola
-        private val NOMBRES_DE_PRUEBA = listOf(
-            "Valentina Soto", "Matías Pérez", "Fernanda Díaz", "Joaquín Torres", "Isidora Vega"
-        )
     }
 }

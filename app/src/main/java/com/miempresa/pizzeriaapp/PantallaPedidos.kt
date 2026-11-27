@@ -54,7 +54,12 @@ fun TarjetaPedido(
     alAvanzarEstado: (() -> Unit)? = null
 ) {
     OutlinedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
             Text("Pedido N° ${pedido.id} — ${pedido.cliente.nombre}", fontWeight = FontWeight.Bold)
             Text(pedido.resumenProductos(), style = MaterialTheme.typography.bodySmall)
             pedido.notas?.let { Text("Notas: $it", style = MaterialTheme.typography.bodySmall) }
