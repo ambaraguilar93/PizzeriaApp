@@ -23,3 +23,15 @@ fun normalizarCorreo(correo: String): String =
 
 fun normalizarTelefono(telefono: String): String =
     if (esTelefonoValido(telefono)) telefono.trim() else TELEFONO_POR_DEFECTO
+
+// Devuelve el teléfono con formato +56 (XXX) XXX-XXXX, o null si no es válido.
+fun formatearTelefono(entrada: String): String? {
+    val digitos = entrada.filter { it.isDigit() }
+    val completo = when {
+        digitos.length == 10 -> "56$digitos"
+        digitos.length == 12 && digitos.startsWith("56") -> digitos
+        else -> return null
+    }
+    val numero = completo.drop(2)
+    return "+56 (${numero.take(3)}) ${numero.substring(3, 6)}-${numero.takeLast(4)}"
+}
