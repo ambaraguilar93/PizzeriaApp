@@ -33,7 +33,8 @@ Dependencias entre módulos: `:app → :data, :utils` y `:data → :utils`.
 - Jetpack Compose + Material 3 + Material Icons (`material-icons-core`)
 - ViewModel y LiveData (`lifecycle 2.11.0`)
 - Kotlin Coroutines (`1.10.2`)
-  Todas las versiones se gestionan en `gradle/libs.versions.toml`.
+
+Todas las versiones se gestionan en `gradle/libs.versions.toml`.
 
 ## Pruebas realizadas
 
@@ -76,6 +77,7 @@ Dispositivos utilizados (emuladores de Android Studio):
 **Inicio — Tablet**
 
 <img src="Evidencias/01.%20Animaciones/Inicio%20-%20Tablet.png" width="420">
+
 ### 2. Menú desplegable
 
 | Desde Inicio — Celular | Desde Pedidos — Celular | Tablet |
