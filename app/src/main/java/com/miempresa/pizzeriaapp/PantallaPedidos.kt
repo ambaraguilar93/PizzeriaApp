@@ -8,16 +8,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.miempresa.pizzeriaapp.modelo.Cliente
 import com.miempresa.pizzeriaapp.modelo.EstadoPedido
 import com.miempresa.pizzeriaapp.modelo.Pedido
 import com.miempresa.pizzeriaapp.modelo.crearCatalogo
+import com.miempresa.pizzeriaapp.negocio.EstadisticasVentas
+import com.miempresa.pizzeriaapp.negocio.calcularEstadisticas
 import com.miempresa.pizzeriaapp.ui.theme.PizzeriaAppTheme
 import com.miempresa.pizzeriaapp.util.formatearPrecio
 
-// Lista de pedidos con botón para avanzar su estado.
+// Lista de pedidos con estadísticas y botón para avanzar su estado.
 @Composable
 fun PantallaPedidos(
     pedidos: List<Pedido>,
@@ -30,7 +34,10 @@ fun PantallaPedidos(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Aquí irán las estadísticas, si queda tiempo.
+        // Se recalculan cada vez que cambia la lista (nuevo pedido o cambio de estado).
+        if (pedidos.isNotEmpty()) {
+            item { TarjetaEstadisticas(calcularEstadisticas(pedidos)) }
+        }
         mensaje?.let { item { MensajeEstado(it) } }
 
         if (pedidos.isEmpty()) {
@@ -46,7 +53,7 @@ fun PantallaPedidos(
     }
 }
 
-// Tarjeta de un pedido.
+// Tarjeta de un pedido. Si recibe alAvanzarEstado, muestra el botón para avanzar.
 @Composable
 fun TarjetaPedido(
     pedido: Pedido,
@@ -75,6 +82,91 @@ fun TarjetaPedido(
                 }
             }
         }
+    }
+}
+
+// Tarjeta con el resumen de ventas.
+@Composable
+fun TarjetaEstadisticas(estadisticas: EstadisticasVentas) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text("Estadísticas de ventas", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+            // Tres indicadores principales, repartidos en partes iguales.
+            Row(Modifier.fillMaxWidth()) {
+                DatoEstadistica(formatearPrecio(estadisticas.totalRecaudado), "Recaudado", Modifier.weight(1f))
+                DatoEstadistica("${estadisticas.cantidadPedidos}", "Pedidos", Modifier.weight(1f))
+                DatoEstadistica(formatearPrecio(estadisticas.ticketPromedio), "Ticket promedio", Modifier.weight(1f))
+            }
+
+            Row(Modifier.fillMaxWidth()) {
+                Text("Pendientes: ${estadisticas.pendientes}", modifier = Modifier.weight(1f))
+                Text("Entregados: ${estadisticas.entregados}")
+            }
+
+            HorizontalDivider()
+
+            Text(
+                "Unidades vendidas por producto (${estadisticas.unidadesTotales})",
+                style = MaterialTheme.typography.titleSmall
+            )
+            // La barra más larga es la del más vendido; las demás son proporcionales a ella.
+            val maximo = estadisticas.unidadesPorProducto.firstOrNull()?.second ?: 1
+            estadisticas.unidadesPorProducto.forEach { (producto, unidades) ->
+                BarraProducto(producto, unidades, maximo)
+            }
+
+            estadisticas.masVendido?.let {
+                Text("⭐ Más vendido: $it", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@Composable
+fun DatoEstadistica(valor: String, etiqueta: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            valor,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Text(etiqueta, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
+    }
+}
+
+// Nombre del producto + barra (LinearProgressIndicator) + cantidad.
+@Composable
+fun BarraProducto(producto: String, unidades: Int, maximo: Int) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            producto,
+            modifier = Modifier.width(110.dp),
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis   // si el nombre es muy largo, termina en "…"
+        )
+        LinearProgressIndicator(
+            progress = { unidades.toFloat() / maximo },   // de 0.0 a 1.0
+            modifier = Modifier
+                .weight(1f)
+                .height(8.dp)
+        )
+        Text(
+            "$unidades",
+            modifier = Modifier.width(32.dp),
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.End
+        )
     }
 }
 

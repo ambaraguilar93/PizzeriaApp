@@ -1,8 +1,12 @@
 package com.miempresa.pizzeriaapp.negocio
 
+
 import com.miempresa.pizzeriaapp.modelo.CategoriaProducto
 import com.miempresa.pizzeriaapp.modelo.Producto
+import com.miempresa.pizzeriaapp.modelo.EstadoPedido
+import com.miempresa.pizzeriaapp.modelo.Pedido
 import kotlin.math.roundToInt
+
 
 // Reglas de negocio
 const val TASA_IVA = 19
@@ -30,4 +34,40 @@ fun calcularTotales(productos: List<Producto>): Totales {
     val base = subtotal - descuento
     val impuestos = (base * TASA_IVA / 100.0).roundToInt()
     return Totales(subtotal, descuento, impuestos, base + impuestos)
+}
+
+// Resumen de ventas que se muestra en la pantalla de pedidos.
+data class EstadisticasVentas(
+    val totalRecaudado: Int,
+    val cantidadPedidos: Int,
+    val ticketPromedio: Int,
+    val pendientes: Int,
+    val entregados: Int,
+    val unidadesPorProducto: List<Pair<String, Int>>,   // (producto, unidades), de mayor a menor
+    val unidadesTotales: Int
+) {
+    // El primero de la lista es el más vendido (si hay empate, el que se vendió primero).
+    val masVendido: String? get() = unidadesPorProducto.firstOrNull()?.first
+}
+
+// Calcula las estadísticas a partir de los pedidos registrados.
+fun calcularEstadisticas(pedidos: List<Pedido>): EstadisticasVentas {
+    val vendidos = pedidos.flatMap { it.productos }
+    val totalRecaudado = pedidos.sumOf { it.calcularTotal() }   // con descuentos e IVA
+    val entregados = pedidos.count { it.estado == EstadoPedido.ENTREGADO }
+
+    return EstadisticasVentas(
+        totalRecaudado = totalRecaudado,
+        cantidadPedidos = pedidos.size,
+        ticketPromedio = if (pedidos.isEmpty()) 0 else totalRecaudado / pedidos.size,
+        pendientes = pedidos.size - entregados,
+        entregados = entregados,
+        // [Pepperoni, Pepperoni, Bebida] → [(Pepperoni, 2), (Bebida, 1)]
+        unidadesPorProducto = vendidos
+            .groupingBy { it.nombre }
+            .eachCount()
+            .toList()
+            .sortedByDescending { it.second },
+        unidadesTotales = vendidos.size
+    )
 }
