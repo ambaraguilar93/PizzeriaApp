@@ -37,6 +37,13 @@ class PizzeriaRepositorio {
             telefono = normalizarTelefono(telefono),
             correo = normalizarCorreo(correo)
         )
+
+        // Un correo solo puede pertenecer a un cliente (no aplica al correo por defecto).
+        val otroConMismoCorreo = clientes.find { it.correo == nuevo.correo && it != nuevo }
+        require(otroConMismoCorreo == null || !nuevo.tieneCorreoRegistrado()) {
+            "El correo ${nuevo.correo} ya está registrado a nombre de ${otroConMismoCorreo?.nombre}."
+        }
+
         return clientes.find { it == nuevo } ?: nuevo.also { clientes.add(it) }
     }
 

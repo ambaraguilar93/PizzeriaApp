@@ -36,10 +36,16 @@ fun PantallaNuevoPedido(
     alCrearPedido: (cliente: Cliente?, cantidades: Map<Producto, Int>, notas: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var clienteElegido by remember { mutableStateOf<Cliente?>(null) }
-    var listaClientesAbierta by remember { mutableStateOf(false) }
-    val cantidades = remember { mutableStateMapOf<Producto, Int>() }   // Producto → cantidad
+    // rememberSaveable sobrevive a la rotación, pero solo guarda datos simples:
+    // se guarda el correo del cliente y las cantidades por nombre de producto.
+    var correoClienteElegido by rememberSaveable { mutableStateOf<String?>(null) }
+    var cantidadesPorNombre by rememberSaveable { mutableStateOf(mapOf<String, Int>()) }
     var notas by rememberSaveable { mutableStateOf("") }
+    var listaClientesAbierta by remember { mutableStateOf(false) }   // no importa si se cierra al girar
+
+    // Se reconstruyen los objetos a partir de lo guardado.
+    val clienteElegido = clientes.find { it.correo == correoClienteElegido }
+    val cantidades = catalogo.associateWith { cantidadesPorNombre[it.nombre] ?: 0 }   // Producto → cantidad
 
     // Se recalcula sola cada vez que cambia una cantidad.
     val totales = calcularTotales(cantidades.flatMap { (producto, cantidad) -> List(cantidad) { producto } })
@@ -68,7 +74,7 @@ fun PantallaNuevoPedido(
                     DropdownMenuItem(
                         text = { Text(cliente.nombre) },
                         onClick = {
-                            clienteElegido = cliente
+                            correoClienteElegido = cliente.correo
                             listaClientesAbierta = false
                         }
                     )
@@ -82,7 +88,7 @@ fun PantallaNuevoPedido(
             FilaCantidad(
                 producto = producto,
                 cantidad = cantidades[producto] ?: 0,
-                alCambiar = { nueva -> cantidades[producto] = nueva }
+                alCambiar = { nueva -> cantidadesPorNombre = cantidadesPorNombre + (producto.nombre to nueva) }
             )
         }
 
@@ -100,7 +106,7 @@ fun PantallaNuevoPedido(
 
         // El botón siempre está activo, si falta algo, el ViewModel responde con un mensaje de error.
         Button(
-            onClick = { alCrearPedido(clienteElegido, cantidades.toMap(), notas) },
+            onClick = { alCrearPedido(clienteElegido, cantidades, notas) },
             modifier = Modifier.fillMaxWidth()
         ) {
             Icon(Icons.Default.Check, contentDescription = null)
