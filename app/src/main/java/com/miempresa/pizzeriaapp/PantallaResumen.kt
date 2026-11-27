@@ -14,7 +14,7 @@ import com.miempresa.pizzeriaapp.modelo.Pedido
 import com.miempresa.pizzeriaapp.ui.theme.PizzeriaAppTheme
 import com.miempresa.pizzeriaapp.util.formatearPrecio
 
-// Pantalla inicial: recibe el estado y las acciones
+// Pantalla inicial que recibe el estado y las acciones
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaResumen(
@@ -106,18 +106,6 @@ fun MensajeEstado(mensaje: String) {
         color = if (esError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
         fontWeight = FontWeight.Medium
     )
-}
-
-@Composable
-fun TarjetaPedido(pedido: Pedido) {
-    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text("Pedido N° ${pedido.id} — ${pedido.cliente.nombre}", fontWeight = FontWeight.Bold)
-            Text(pedido.resumenProductos(), style = MaterialTheme.typography.bodySmall)
-            Text("Estado: ${pedido.estado.etiqueta}")
-            Text("Total: ${formatearPrecio(pedido.calcularTotal())}")
-        }
-    }
 }
 
 @Preview(showBackground = true)
